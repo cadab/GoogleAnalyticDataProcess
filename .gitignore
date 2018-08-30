@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+*.p12
+/GoogleAnalyticDataProcess/config/appsettings.json
+obj
+bin
+.vs

@@ -20,7 +20,7 @@ namespace GoogleAnalyticDataProcess
             System.IO.Directory.SetCurrentDirectory(System.AppDomain.CurrentDomain.BaseDirectory);
 
             // Adding JSON file into IConfiguration.
-            IConfiguration config = new ConfigurationBuilder().AddJsonFile("appsettings.json", true, true).Build();
+            IConfiguration config = new ConfigurationBuilder().AddJsonFile("config/appsettings.json", true, true).Build();
 
             string[] scopes = new string[] { AnalyticsService.Scope.Analytics }; // view and manage your Google Analytics data
 

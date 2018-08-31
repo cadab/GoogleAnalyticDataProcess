@@ -54,17 +54,14 @@ namespace GoogleAnalyticDataProcess
                 RealtimeData realtime = realtimeReq.Execute();
                 RealtimeData realtimePageViews = realtimePageViewsReq.Execute();
 
-                var usersRows = realtime.Rows.ToList();
-                var pageRows = realtimePageViews.Rows.ToList();
-
                 Console.WriteLine(DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss"));
-                Console.WriteLine("Total Active Users: " + realtime.Rows.Sum(t => Convert.ToInt32(t[6])));
-                Console.WriteLine("Total Page Views: " + realtimePageViews.Rows.Sum(t => Convert.ToInt32(t[6])));
+                Console.WriteLine("Total Active Users: " + realtime.TotalsForAllResults.FirstOrDefault().Value);
+                Console.WriteLine("Total Page Views: " + realtimePageViews.TotalsForAllResults.FirstOrDefault().Value);
 
                 Console.WriteLine("-----------------------------------------");
 
-                var userData = CreateData("RealtimeActiveUsers", usersRows);
-                var pageData = CreateData("RealtimePageViews", pageRows);
+                var userData = CreateData("RealtimeActiveUsers", realtime);
+                var pageData = CreateData("RealtimePageViews", realtimePageViews);
 
                 using (var webClient = new WebClient())
                 {
@@ -79,8 +76,10 @@ namespace GoogleAnalyticDataProcess
             }
         }
 
-        private static List<string> CreateData(string metricName, List<IList<string>> rows)
+        private static List<string> CreateData(string metricName, RealtimeData data)
         {
+            var rows = data.Rows.ToList();
+
             List<string> rts = new List<string>();
             foreach (var item in rows)
             {
@@ -97,6 +96,8 @@ namespace GoogleAnalyticDataProcess
                         lon = item[5]
                     },
                     Value = Convert.ToInt32(item[6]),
+                    SiteProfileId = data.ProfileInfo.ProfileId,
+                    ProfileName = data.ProfileInfo.ProfileName,
                     timestamp = DateTime.UtcNow.ToString("O")
                 };
 
@@ -119,6 +120,10 @@ namespace GoogleAnalyticDataProcess
         public string City { get; set; }
         public string DeviceType { get; set; }
         public Location Loc { get; set; }
+
+        public string ProfileName { get; set; }
+
+        public string SiteProfileId { get; set; }
     }
 
     public class Location

@@ -43,33 +43,43 @@ namespace GoogleAnalyticDataProcess
 
             while (true)
             {
-                DataResource.RealtimeResource.GetRequest realtimeReq = service.Data.Realtime.Get(String.Format("ga:{0}", config["GAID"]), "rt:activeUsers");
-                realtimeReq.Dimensions = "rt:country,rt:region,rt:city,rt:deviceCategory,rt:latitude,rt:longitude";
-                realtimeReq.Sort = "rt:activeUsers";
-
-                DataResource.RealtimeResource.GetRequest realtimePageViewsReq = service.Data.Realtime.Get(String.Format("ga:{0}", config["GAID"]), "rt:pageviews");
-                realtimePageViewsReq.Dimensions = "rt:country,rt:region,rt:city,rt:deviceCategory,rt:latitude,rt:longitude";
-                realtimePageViewsReq.Sort = "rt:pageviews";
-
-                RealtimeData realtime = realtimeReq.Execute();
-                RealtimeData realtimePageViews = realtimePageViewsReq.Execute();
-
-                Console.WriteLine(DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss"));
-                Console.WriteLine("Total Active Users: " + realtime.TotalsForAllResults.FirstOrDefault().Value);
-                Console.WriteLine("Total Page Views: " + realtimePageViews.TotalsForAllResults.FirstOrDefault().Value);
-
-                Console.WriteLine("-----------------------------------------");
-
-                var userData = CreateData("RealtimeActiveUsers", realtime);
-                var pageData = CreateData("RealtimePageViews", realtimePageViews);
-
-                using (var webClient = new WebClient())
+                try
                 {
-                    webClient.Headers.Add("content-type", "application/json");
-                    webClient.UploadString(config["ElasticSearchUrl"], String.Join("\r\n", userData) +"\r\n");
 
-                    webClient.Headers.Add("content-type", "application/json");
-                    webClient.UploadString(config["ElasticSearchUrl"], String.Join("\r\n", pageData) + "\r\n");
+
+                    DataResource.RealtimeResource.GetRequest realtimeReq = service.Data.Realtime.Get(String.Format("ga:{0}", config["GAID"]), "rt:activeUsers");
+                    realtimeReq.Dimensions = "rt:country,rt:region,rt:city,rt:deviceCategory,rt:latitude,rt:longitude";
+                    realtimeReq.Sort = "rt:activeUsers";
+
+                    DataResource.RealtimeResource.GetRequest realtimePageViewsReq = service.Data.Realtime.Get(String.Format("ga:{0}", config["GAID"]), "rt:pageviews");
+                    realtimePageViewsReq.Dimensions = "rt:country,rt:region,rt:city,rt:deviceCategory,rt:latitude,rt:longitude";
+                    realtimePageViewsReq.Sort = "rt:pageviews";
+
+                    RealtimeData realtime = realtimeReq.Execute();
+                    RealtimeData realtimePageViews = realtimePageViewsReq.Execute();
+
+                    Console.WriteLine(DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss"));
+                    Console.WriteLine("Total Active Users: " + realtime.TotalsForAllResults.FirstOrDefault().Value);
+                    Console.WriteLine("Total Page Views: " + realtimePageViews.TotalsForAllResults.FirstOrDefault().Value);
+
+                    Console.WriteLine("-----------------------------------------");
+
+                    var userData = CreateData("RealtimeActiveUsers", realtime);
+                    var pageData = CreateData("RealtimePageViews", realtimePageViews);
+
+                    using (var webClient = new WebClient())
+                    {
+                        webClient.Headers.Add("content-type", "application/json");
+                        webClient.UploadString(config["ElasticSearchUrl"], String.Join("\r\n", userData) + "\r\n");
+
+                        webClient.Headers.Add("content-type", "application/json");
+                        webClient.UploadString(config["ElasticSearchUrl"], String.Join("\r\n", pageData) + "\r\n");
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error:" + e.Message);
                 }
 
                 Thread.Sleep(Convert.ToInt32(config["IntervalMs"]));
